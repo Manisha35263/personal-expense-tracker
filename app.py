@@ -10,7 +10,7 @@ from database import (
 )
 
 app = Flask(__name__)
-
+init_db()
 
 def validate_transaction(payload):
     required = ("date", "type", "category", "amount")
