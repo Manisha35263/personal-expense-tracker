@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Pocket Ledger · Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/"><span class="brand-mark">p</span><span>Pocket<span class="brand-light">Ledger</span></span></a>
+      <div class="side-label">WORKSPACE</div>
+      <a class="nav-item active" href="#overview"><span>▦</span> Overview</a>
+      <a class="nav-item" href="#transactions"><span>↕</span> Transactions</a>
+      <div class="sidebar-bottom">
+        <div class="tip-card"><span class="tip-icon">✦</span><strong>Small steps add up.</strong><p>Track your spending and make every rupee count.</p></div>
+        <div class="profile"><div class="avatar">Y</div><div><strong>Your finances</strong><small>Personal workspace</small></div></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div><div class="eyebrow">PERSONAL FINANCE</div><h1>Overview</h1><p class="subheading">A clearer picture of where your money goes.</p></div>
+        <button class="primary-btn" id="newTransactionBtn"><span>＋</span> Add transaction</button>
+      </header>
+
+      <div id="alert" class="alert" role="alert" aria-live="polite" hidden></div>
+
+      <section id="overview" class="stats-grid">
+        <article class="stat-card"><div class="stat-top"><span>Total income</span><span class="stat-icon income-icon">↗</span></div><div class="stat-value" id="totalIncome">₹0.00</div><div class="stat-foot"><span class="dot green"></span> Money received</div></article>
+        <article class="stat-card"><div class="stat-top"><span>Total expenses</span><span class="stat-icon expense-icon">↘</span></div><div class="stat-value" id="totalExpenses">₹0.00</div><div class="stat-foot"><span class="dot orange"></span> Money spent</div></article>
+        <article class="stat-card balance-card"><div class="stat-top"><span>Net balance</span><span class="stat-icon balance-icon">◈</span></div><div class="stat-value" id="netBalance">₹0.00</div><div class="stat-foot">Income minus expenses</div></article>
+      </section>
+
+      <section class="charts-grid">
+        <article class="panel chart-panel"><div class="panel-heading"><div><h2>Monthly expenses</h2><p>Your spending across the year</p></div><span class="mini-tag">JAN — DEC</span></div><div class="chart-wrap"><canvas id="monthlyChart" aria-label="Monthly expenses bar chart"></canvas></div></article>
+        <article class="panel chart-panel"><div class="panel-heading"><div><h2>Spending by category</h2><p>Where your expenses go</p></div><span class="mini-tag">BREAKDOWN</span></div><div class="donut-wrap"><canvas id="categoryChart" aria-label="Category spending doughnut chart"></canvas></div><div id="categoryLegend" class="category-legend"></div></article>
+      </section>
+
+      <section id="transactions" class="panel transactions-panel">
+        <div class="panel-heading transaction-heading"><div><h2>Recent transactions</h2><p>Review and manage your activity</p></div><div class="table-tools"><input type="search" id="searchInput" placeholder="Search transactions…" aria-label="Search transactions"><select id="sortSelect" aria-label="Sort transactions"><option value="date-desc">Newest first</option><option value="date-asc">Oldest first</option><option value="amount-desc">Highest amount</option><option value="amount-asc">Lowest amount</option></select></div></div>
+        <div class="table-scroll"><table><thead><tr><th>TRANSACTION</th><th>DATE</th><th>CATEGORY</th><th>TYPE</th><th class="amount-cell">AMOUNT</th><th class="actions-cell">ACTIONS</th></tr></thead><tbody id="transactionRows"></tbody></table></div>
+        <div id="emptyState" class="empty-state" hidden><div class="empty-icon">↗</div><strong>No transactions found</strong><p>Add a transaction or adjust your search.</p></div>
+        <div class="table-footer"><span id="transactionCount">0 transactions</span><span>Stored securely in your local SQLite database</span></div>
+      </section>
+      <footer>Made for mindful money management <span>·</span> Pocket Ledger</footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header"><div><div class="eyebrow">YOUR MONEY, YOUR WAY</div><h2 id="modalTitle">Add transaction</h2></div><button class="icon-btn" id="closeModal" aria-label="Close">×</button></div>
+      <form id="transactionForm" novalidate>
+        <div class="form-grid">
+          <label class="full-width">Date<input type="date" id="date" name="date" required></label>
+          <label>Transaction type<select id="type" name="type" required><option value="Expense">Expense</option><option value="Income">Income</option></select></label>
+          <label>Category<select id="category" name="category" required><option value="Food">Food</option><option value="Travel">Travel</option><option value="Bills">Bills</option><option value="Shopping">Shopping</option><option value="Other">Other</option><option value="Salary">Salary</option><option value="Freelance">Freelance</option></select></label>
+          <label class="full-width">Amount (₹)<div class="amount-input"><span>₹</span><input type="number" id="amount" name="amount" min="0.01" step="0.01" placeholder="0.00" required></div></label>
+          <label class="full-width">Description <span class="optional">(optional)</span><textarea id="description" name="description" rows="3" maxlength="500" placeholder="Add a note about this transaction…"></textarea></label>
+        </div>
+        <div class="form-error" id="formError" role="alert" hidden></div>
+        <div class="modal-actions"><button type="button" class="secondary-btn" id="cancelModal">Cancel</button><button type="submit" class="primary-btn" id="saveBtn">Save transaction</button></div>
+      </form>
+    </section>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
